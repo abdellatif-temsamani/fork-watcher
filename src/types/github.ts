@@ -10,14 +10,16 @@ export interface GitHubRepo {
   name: string;
   full_name: string;
   description: string | null;
-  fork: boolean;
   html_url: string;
   forks_count: number;
   stargazers_count: number;
   language: string | null;
-  owner: GitHubOwner;
-  forks_url: string;
   updated_at: string;
+  private: boolean;
+  owner: {
+    login: string;
+    avatar_url: string;
+  };
 }
 
 export interface GitHubFork {
@@ -37,4 +39,17 @@ export interface GitHubFork {
 export interface RepoWithForks {
   repo: GitHubRepo;
   forks: GitHubFork[];
+}
+
+export interface GitHubUser {
+  login: string;
+  id: number;
+  avatar_url: string;
+  html_url: string;
+  name: string | null;
+  bio: string | null;
+  public_repos: number;
+  followers: number;
+  following: number;
+  type: string;
 }

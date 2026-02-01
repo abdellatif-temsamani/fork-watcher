@@ -681,4 +681,234 @@
     animation: binary-fall 15s linear infinite;
     text-shadow: 0 0 5px var(--primary);
   }
+
+  /* ========================================
+     SURFACE UTILITIES
+     ======================================== */
+  
+  /* Card surface with glassmorphism */
+  .surface-card {
+    background-color: var(--card);
+    border: 1px solid oklch(0.2 0.02 145 / 0.5);
+    backdrop-filter: blur(8px);
+    border-radius: var(--radius);
+  }
+  
+  /* Panel surface with stronger glass effect */
+  .surface-panel {
+    background-color: var(--popover);
+    border: 1px solid oklch(0.25 0.02 145 / 0.6);
+    box-shadow: 0 4px 24px oklch(0 0 0 / 0.3);
+    border-radius: var(--radius);
+  }
+  
+  /* Glass surface for overlays */
+  .surface-glass {
+    background-color: oklch(0.08 0.01 145 / 0.8);
+    backdrop-filter: blur(12px);
+    border: 1px solid oklch(0.2 0.02 145 / 0.3);
+    border-radius: var(--radius);
+  }
+  
+  /* Chrome gradient border effect */
+  .border-chrome {
+    position: relative;
+    border-radius: var(--radius);
+  }
+  
+  .border-chrome::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 1px;
+    border-radius: inherit;
+    background: linear-gradient(
+      135deg,
+      oklch(0.75 0.01 260),
+      oklch(0.55 0.02 260),
+      oklch(0.75 0.01 260)
+    );
+    -webkit-mask: 
+      linear-gradient(#fff 0 0) content-box, 
+      linear-gradient(#fff 0 0);
+    mask: 
+      linear-gradient(#fff 0 0) content-box, 
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+  
+  /* Animated gradient border */
+  .border-gradient {
+    position: relative;
+    background: linear-gradient(var(--card), var(--card)) padding-box,
+                linear-gradient(135deg, oklch(0.65 0.18 145), oklch(0.75 0.01 260)) border-box;
+    border: 1px solid transparent;
+    border-radius: var(--radius);
+  }
+  
+  /* Conic gradient animated border */
+  @property --conic-angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+  }
+  
+  @keyframes conic-rotate {
+    from { --conic-angle: 0deg; }
+    to { --conic-angle: 360deg; }
+  }
+  
+  .border-conic {
+    position: relative;
+    border-radius: var(--radius);
+  }
+  
+  .border-conic::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 1.5px;
+    border-radius: inherit;
+    background: conic-gradient(
+      from var(--conic-angle),
+      oklch(0.65 0.18 145),
+      oklch(0.7 0.22 145),
+      oklch(0.75 0.01 260),
+      oklch(0.65 0.18 145)
+    );
+    -webkit-mask: 
+      linear-gradient(#fff 0 0) content-box, 
+      linear-gradient(#fff 0 0);
+    mask: 
+      linear-gradient(#fff 0 0) content-box, 
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: conic-rotate 3s linear infinite;
+    pointer-events: none;
+  }
+  
+  .border-conic:hover::before {
+    animation-duration: 1.5s;
+  }
+  
+  /* Shimmer sweep effect for cards */
+  @keyframes shimmer-sweep {
+    0% { transform: translateX(-100%) rotate(45deg); }
+    100% { transform: translateX(200%) rotate(45deg); }
+  }
+  
+  .shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .shimmer::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      oklch(0.9 0.01 145 / 0.1) 50%,
+      transparent 100%
+    );
+    transform: translateX(-100%) rotate(45deg);
+    pointer-events: none;
+  }
+  
+  .shimmer:hover::after {
+    animation: shimmer-sweep 0.8s ease-out;
+  }
+  
+  /* Glow pulse for CTAs */
+  @keyframes glow-pulse {
+    0%, 100% { 
+      box-shadow: 0 0 20px oklch(0.65 0.18 145 / 0.3),
+                  0 0 40px oklch(0.65 0.18 145 / 0.1);
+    }
+    50% { 
+      box-shadow: 0 0 30px oklch(0.65 0.18 145 / 0.5),
+                  0 0 60px oklch(0.65 0.18 145 / 0.2);
+    }
+  }
+  
+  .glow-pulse {
+    animation: glow-pulse 2s ease-in-out infinite;
+  }
+  
+  /* Skeleton shimmer for loading states */
+  @keyframes skeleton-shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      oklch(0.15 0.015 145) 0%,
+      oklch(0.2 0.02 145) 50%,
+      oklch(0.15 0.015 145) 100%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  }
+  
+  /* ========================================
+     FX INTENSITY CSS VARIABLES
+     Controlled by UIMode system
+     ======================================== */
+  
+  :root {
+    /* Base intensity values (medium by default) */
+    --fx-intensity: 0.7;
+    --fx-animation-speed: 1;
+    --fx-scanlines-opacity: 0.02;
+    --fx-noise-opacity: 0.03;
+    --fx-vignette-opacity: 0.1;
+    --fx-grid-opacity: 0;
+    --fx-laser-opacity: 0;
+    --fx-chromatic-opacity: 0;
+    --fx-particles-opacity: 0;
+  }
+  
+  /* Reduced motion: minimize effects */
+  @media (prefers-reduced-motion: reduce) {
+    :root {
+      --fx-intensity: 0.3;
+      --fx-animation-speed: 0;
+      --fx-scanlines-opacity: 0.01;
+      --fx-noise-opacity: 0.02;
+      --fx-vignette-opacity: 0.05;
+      --fx-grid-opacity: 0;
+      --fx-laser-opacity: 0;
+      --fx-chromatic-opacity: 0;
+      --fx-particles-opacity: 0;
+    }
+    
+    .border-conic::before,
+    .glow-pulse,
+    .shimmer::after,
+    .skeleton {
+      animation: none !important;
+    }
+  }
+  
+  /* High contrast mode adjustments */
+  @media (prefers-contrast: high) {
+    .surface-card,
+    .surface-panel,
+    .surface-glass {
+      border-width: 2px;
+      border-color: oklch(0.5 0.02 145);
+    }
+    
+    .border-chrome::before,
+    .border-gradient,
+    .border-conic::before {
+      display: none;
+    }
+  }
 }
