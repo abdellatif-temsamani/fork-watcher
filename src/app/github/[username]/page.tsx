@@ -6,6 +6,8 @@ import { ChromeButton } from '@/components/y2k/ChromeButton';
 import { StatusBadge } from '@/components/y2k/StatusBadge';
 import Link from 'next/link';
 import { ArrowLeft, Github, ExternalLink } from 'lucide-react';
+import { validateGitHubUsername } from '@/lib/validation';
+import { notFound } from 'next/navigation';
 
 interface PageProps {
   params: Promise<{ username: string }>;
@@ -82,6 +84,12 @@ async function RepoForksListWrapper({ username }: { username: string }) {
 export default function UserForksPage({ params }: PageProps) {
   const { username } = use(params);
   const decodedUsername = decodeURIComponent(username);
+
+  // Validate username server-side
+  const validation = validateGitHubUsername(decodedUsername);
+  if (!validation.valid) {
+    notFound();
+  }
 
   return (
     <main className="min-h-screen bg-background p-4 md:p-8 relative">

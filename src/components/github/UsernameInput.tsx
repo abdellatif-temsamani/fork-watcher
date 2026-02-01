@@ -9,6 +9,8 @@ import { TerminalBlock } from "@/components/y2k/TerminalBlock";
 import { StatusBadge } from "@/components/y2k/StatusBadge";
 import { Github, ArrowRight, Search } from "lucide-react";
 import Link from "next/link";
+import { validateGitHubUsername } from "@/lib/validation";
+import { searchRateLimiter } from "@/lib/rate-limiter";
 
 export default function UsernameInput() {
   const [username, setUsername] = useState("");
@@ -20,8 +22,18 @@ export default function UsernameInput() {
     e.preventDefault();
     setError("");
 
-    if (!username.trim()) {
-      setError("Please enter a GitHub username");
+    // Check rate limiting
+    const rateLimit = searchRateLimiter.isAllowed("search");
+    if (!rateLimit.allowed) {
+      const seconds = Math.ceil(searchRateLimiter.getTimeUntilReset("search") / 1000);
+      setError(`Too many searches. Please wait ${seconds} seconds.`);
+      return;
+    }
+
+    // Validate username
+    const validation = validateGitHubUsername(username);
+    if (!validation.valid) {
+      setError(validation.error || "Invalid username");
       return;
     }
 
