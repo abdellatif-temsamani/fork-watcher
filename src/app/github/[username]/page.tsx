@@ -1,8 +1,11 @@
-import { Suspense } from 'react';
-import RepoForksList from '@/components/github/RepoForksList';
-import LoadingState from '@/components/github/LoadingState';
+import { Suspense, use } from 'react';
+import { RepoForksList } from '@/components/github/RepoForksList';
+import { LoadingState } from '@/components/github/LoadingState';
+import { WindowPanel } from '@/components/y2k/WindowPanel';
+import { ChromeButton } from '@/components/y2k/ChromeButton';
+import { StatusBadge } from '@/components/y2k/StatusBadge';
 import Link from 'next/link';
-import { ArrowLeft, Github } from 'lucide-react';
+import { ArrowLeft, Github, ExternalLink } from 'lucide-react';
 
 interface PageProps {
   params: Promise<{ username: string }>;
@@ -11,44 +14,87 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps) {
   const { username } = await params;
   return {
-    title: `${username}'s GitHub Forks`,
-    description: `View all repositories and forks for ${username}`,
+    title: `${username}'s GitHub Forks | Fork Watcher`,
+    description: `View all repositories and forks for ${username} on GitHub`,
   };
 }
 
-export default async function UserForksPage({ params }: PageProps) {
-  const { username } = await params;
+// Generate static params for common users at build time
+export async function generateStaticParams() {
+  return [
+    { username: 'octocat' },
+    { username: 'torvalds' },
+  ];
+}
+
+// Component for the header that uses params synchronously
+function UserHeader({ username }: { username: string }) {
+  return (
+    <WindowPanel variant="elevated" showWindowControls className="mb-8">
+      <div className="p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-4">
+            <Link href="/github">
+              <ChromeButton variant="ghost" size="icon">
+                <ArrowLeft className="h-4 w-4" />
+              </ChromeButton>
+            </Link>
+
+            <div className="flex items-center gap-4">
+              <div className="inline-flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10 shadow-[0_0_20px_oklch(0.75_0.25_145/0.2)]">
+                <Github className="h-7 w-7 text-primary" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-2xl font-bold text-foreground md:text-3xl">
+                    {username}
+                  </h1>
+                  <StatusBadge variant="jungle">USER</StatusBadge>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  GitHub Repositories & Forks
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <a
+            href={`https://github.com/${username}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <ChromeButton variant="filled" size="sm">
+              View on GitHub
+              <ExternalLink className="ml-2 h-3 w-3" />
+            </ChromeButton>
+          </a>
+        </div>
+      </div>
+    </WindowPanel>
+  );
+}
+
+// Wrapper component that handles async data fetching
+async function RepoForksListWrapper({ username }: { username: string }) {
+  return <RepoForksList username={username} />;
+}
+
+export default function UserForksPage({ params }: PageProps) {
+  const { username } = use(params);
   const decodedUsername = decodeURIComponent(username);
 
   return (
-    <main className="min-h-screen p-4 md:p-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-8">
-          <Link
-            href="/github"
-            className="inline-flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors mb-4"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Search
-          </Link>
+    <main className="min-h-screen bg-background p-4 md:p-8 relative">
+      {/* Background effects */}
+      <div className="fixed inset-0 -z-10 bg-[radial-gradient(circle_800px_at_50%_100px,oklch(0.75_0.25_145/0.05),transparent)]" />
 
-          <div className="flex items-center gap-4">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800">
-              <Github className="w-6 h-6 text-slate-900 dark:text-slate-100" />
-            </div>
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-100">
-                {decodedUsername}
-              </h1>
-              <p className="text-slate-600 dark:text-slate-400">
-                GitHub Repositories and Forks
-              </p>
-            </div>
-          </div>
-        </div>
+      <div className="mx-auto max-w-5xl">
+        {/* Header */}
+        <UserHeader username={decodedUsername} />
 
+        {/* Content - wrapped in Suspense */}
         <Suspense fallback={<LoadingState />}>
-          <RepoForksList username={decodedUsername} />
+          <RepoForksListWrapper username={decodedUsername} />
         </Suspense>
       </div>
     </main>

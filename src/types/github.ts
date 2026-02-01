@@ -17,6 +17,7 @@ export interface GitHubRepo {
   language: string | null;
   owner: GitHubOwner;
   forks_url: string;
+  updated_at: string;
 }
 
 export interface GitHubFork {

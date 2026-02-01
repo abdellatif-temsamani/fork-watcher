@@ -1,78 +1,103 @@
-import { fetchUserRepos, fetchRepoForks } from '@/lib/github-api';
-import { RepoWithForks } from '@/types/github';
 import RepoCard from './RepoCard';
-import ErrorState from './ErrorState';
+import { ErrorState } from './ErrorState';
+import { WindowPanel } from '@/components/y2k/WindowPanel';
+import { StatusBadge } from '@/components/y2k/StatusBadge';
+import { TerminalBlock } from '@/components/y2k/TerminalBlock';
+import { fetchUserRepos, fetchRepoForks } from '@/lib/github-api';
+import { Github } from 'lucide-react';
+import type { GitHubRepo, GitHubFork } from '@/types/github';
 
 interface RepoForksListProps {
   username: string;
 }
 
-export default async function RepoForksList({ username }: RepoForksListProps) {
+export async function RepoForksList({ username }: RepoForksListProps) {
   try {
     const repos = await fetchUserRepos(username);
-    
+
     if (repos.length === 0) {
       return (
-        <div className="text-center py-12">
-          <p className="text-slate-600 dark:text-slate-400">
-            No repositories found for user <strong>{username}</strong>
-          </p>
-        </div>
+        <WindowPanel variant="elevated" showWindowControls>
+          <div className="p-12 text-center">
+            <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-2xl bg-muted shadow-[0_0_30px_oklch(0.75_0.25_145/0.1)]">
+              <Github className="h-10 w-10 text-muted-foreground" />
+            </div>
+            <h2 className="mb-2 text-xl font-bold text-foreground">
+              No Repositories Found
+            </h2>
+            <p className="text-muted-foreground mb-6">
+              {username} doesn&apos;t have any public repositories, or their repos don&apos;t have forks.
+            </p>
+            <TerminalBlock title="info.txt">
+              User may have private repos or no forks on public repos
+            </TerminalBlock>
+          </div>
+        </WindowPanel>
       );
     }
 
-    // Only fetch forks for repos that actually have forks (forks_count > 0)
-    // This reduces API calls significantly
-    const reposWithForksCount = repos.filter(repo => repo.forks_count > 0);
-
-    if (reposWithForksCount.length === 0) {
-      return (
-        <div className="text-center py-12">
-          <p className="text-slate-600 dark:text-slate-400">
-            No repositories with forks found for <strong>{username}</strong>
-          </p>
-        </div>
-      );
-    }
-
-    const reposWithForks: RepoWithForks[] = await Promise.all(
-      reposWithForksCount.map(async (repo) => {
-        const forks = await fetchRepoForks(repo.owner.login, repo.name);
-        return { repo, forks };
-      })
+    // Fetch forks for repos that have them
+    const reposWithForks = await Promise.all(
+      repos
+        .filter((repo: GitHubRepo) => repo.forks_count > 0)
+        .map(async (repo: GitHubRepo) => {
+          const forks: GitHubFork[] = await fetchRepoForks(username, repo.name);
+          return { repo, forks };
+        })
     );
 
-    const reposWithForksList = reposWithForks.filter((item) => item.forks.length > 0);
-
-    if (reposWithForksList.length === 0) {
+    if (reposWithForks.length === 0) {
       return (
-        <div className="text-center py-12">
-          <p className="text-slate-600 dark:text-slate-400">
-            No forks found for any repositories of <strong>{username}</strong>
-          </p>
-        </div>
+        <WindowPanel variant="elevated" showWindowControls>
+          <div className="p-12 text-center">
+            <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-2xl bg-muted shadow-[0_0_30px_oklch(0.75_0.25_145/0.1)]">
+              <Github className="h-10 w-10 text-muted-foreground" />
+            </div>
+            <h2 className="mb-2 text-xl font-bold text-foreground">
+              No Forked Repositories
+            </h2>
+            <p className="text-muted-foreground mb-6">
+              {username} has {repos.length} repositories, but none have been forked yet.
+            </p>
+            <TerminalBlock title="info.txt">
+              Repositories exist but no forks detected
+            </TerminalBlock>
+          </div>
+        </WindowPanel>
       );
     }
 
     return (
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-            Repositories with Forks
-          </h2>
-          <span className="text-sm text-slate-600 dark:text-slate-400">
-            {reposWithForksList.length} repos with forks
-          </span>
-        </div>
+        {/* Stats Header */}
+        <WindowPanel variant="default" showWindowControls>
+          <div className="p-4">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center gap-4">
+                <StatusBadge variant="jungle" glow>
+                  {repos.length} REPOS
+                </StatusBadge>
+                <StatusBadge variant="chrome">
+                  {reposWithForks.reduce((acc: number, item: { forks: GitHubFork[] }) => acc + item.forks.length, 0)} TOTAL FORKS
+                </StatusBadge>
+              </div>
+              <span className="text-xs text-muted-foreground font-mono">
+                status: online
+              </span>
+            </div>
+          </div>
+        </WindowPanel>
 
+        {/* Repo Cards */}
         <div className="grid gap-6">
-          {reposWithForksList.map((item) => (
-            <RepoCard key={item.repo.id} repo={item.repo} forks={item.forks} />
+          {reposWithForks.map(({ repo, forks }) => (
+            <RepoCard key={repo.id} repo={repo} forks={forks} />
           ))}
         </div>
       </div>
     );
   } catch (error) {
-    return <ErrorState error={error instanceof Error ? error.message : 'An error occurred'} />;
+    const errorMessage = error instanceof Error ? error.message : 'Failed to fetch repositories';
+    return <ErrorState message={errorMessage} />;
   }
 }
