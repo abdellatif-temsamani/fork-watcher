@@ -1,4 +1,35 @@
+## Fork Watcher
+
+Fork Watcher is a small Next.js app for tracking and reviewing GitHub forks, built as a lightweight playground for experimenting with UI and data flows.
+
+> Notice: this is just an experiment of me learning vibe coding.
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+
+## What it does
+
+- Collects fork metadata for a target repository.
+- Highlights recent activity and fork health signals.
+- Surfaces quick links for review and comparison.
+
+## Tech stack
+
+- Next.js (App Router)
+- TypeScript
+- Tailwind CSS
+
+## Scripts
+
+- `npm run dev` - start the local dev server.
+- `npm run build` - create a production build.
+- `npm run start` - run the production server.
+- `npm run lint` - run lint checks.
+
+## Roadmap ideas
+
+- Add fork watchlists and saved filters.
+- Add a lightweight scoring model for fork quality.
+- Export fork insights to CSV or JSON.
 
 ## Getting Started
 
